@@ -5,7 +5,7 @@ master = Tk()
 triangle_size = 0.1
 cell_score_min = -0.2
 cell_score_max = 0.2
-Width = 15
+Width = 10
 (x, y) = (20, 20)
 actions = ["up", "down", "left", "right"]
 
@@ -58,19 +58,17 @@ def try_move(dx, dy):
         if new_x == i and new_y == j:
             score -= walk_reward
             score += w
-            if score > 0:
-                print("Success! score: ", score)
-            else:
-                print("Fail! score: ", score)
             if c== "yellow" or c=="red":
                 for bonus in coffre:
                     score+=int(coffre[bonus])
                 restart = True
+                print("score=",score)
                     
             elif c== "blue":
                 coffre[i,j]=True
             else:
                 poubelle.append((i,j,c,w))
+                walls.append(i,j)
                 specials.remove((i,j,c,w))
             return
     #print "score: ", score

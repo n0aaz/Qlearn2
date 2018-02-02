@@ -2,16 +2,20 @@ import World
 import threading
 import time
 import matplotlib.pyplot as plt
+from World import listescores
 
 discount = 0.9
 actions = World.actions
 states = []
 Q = {}
 cpteur=0
+stop=False
 
+#on initialise tous les états possibles , soit tous les tuples (a,b) où a,b appartiennent à [|0;x|]*[|0;y|]
 for i in range(World.x):
     for j in range(World.y):
         states.append((i, j))
+
 
 for state in states:
     temp = {}
@@ -25,11 +29,19 @@ for (i, j, c, w) in World.specials:
 
 print(Q)
 
-def signal_arret(liste,thr):
-	n,aux =len(liste),liste[n-1]
+#cette fonction nous permet d'envoyer un signal d'arret au programme principal quand le score a convergé
+#on considère qu'il y a convergence lorsqu'un même score se répète 10 fois
+def signal_arret(liste):
+	n=len(liste)
+	if n<11:
+		return False
+	aux= liste[n-1]
 	
-	for k in range(n,n-5,-1):
-		listescores[k]
+	for k in range(n-2,n-10,-1):
+		if liste[k] != aux:
+			return False
+		aux = liste[k]
+	return True
 
 def do_action(action):
     s = World.player
@@ -63,20 +75,19 @@ def inc_Q(s, a, alpha, inc):
 
 
 def run():
-    global discount,cpteur
+    global discount,cpteur,listescores
     time.sleep(1)
     alpha = 1
     t = 1
-    while True:
-        # Pick the right action
+    while not signal_arret(listescores):
+        # Choix de l'action menant à la meilleure récompense
         s = World.player
         max_act, max_val = max_Q(s)
         (s, a, r, s2) = do_action(max_act)
 
-        # Update Q
+        # Modification de la matrice Q
         max_act, max_val = max_Q(s2)
         inc_Q(s, a, alpha, r + discount * max_val)
-        #print(Q)
 
         # Check if the game has restarted
         t += 1.0
@@ -89,20 +100,23 @@ def run():
         # Update the learning rate
         alpha = pow(t, -0.001)
 
-        # MODIFY THIS SLEEP IF THE GAME IS GOING TOO FAST.
-        time.sleep(0.000001)
+        # vitesse de rafraichissement de l'interface graphique
+        time.sleep(0.00001)
+    #World.master.destroy()
 
 
 t = threading.Thread(target=run)
 t.daemon = True
 t.start()
+#if signal_arret(listescores):
+#t.join()
+
+
 World.start_game()
-
-
 	
-print(cpteur,World.listescores)
+print(cpteur,listescores)
 plt.close()
-plt.plot(range(cpteur),World.listescores)
+plt.plot(range(cpteur),listescores)
 plt.show()
 
 
